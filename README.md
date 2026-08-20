@@ -205,7 +205,7 @@ chat_reads
 ### 1. Clone repository
 
 ```bash
-git clone https://github.com/USERNAME/ark.git
+git clone https://github.com/mgoski/ark.git
 cd ark
 ```
 
