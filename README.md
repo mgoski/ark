@@ -26,8 +26,8 @@ Aplikasi memisahkan alur **Masyarakat, Orang Kantor, OPD, dan Operator** agar da
 
 | Level | Masyarakat | Orang Kantor | OPD | Operator |
 |---|---:|---:|---:|---:|
-| **Admin** | ✅ | ✅ | ✅ | ❌ |
-| **Admin MPP** | ✅ | ✅ | ✅ | ❌ |
+| **Admin** | ✅ | ✅ | ✅ | ✅ |
+| **Admin MPP** | ✅ | ✅ | ✅ | ✅ |
 | **FO** | ✅ | ✅ | ❌ | ❌ |
 | **FO MPP** | ✅ | ✅ | ❌ | ❌ |
 | **Operator** | ❌ | ❌ | ❌ | ✅ |
