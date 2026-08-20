@@ -272,9 +272,11 @@ Tambahkan lisensi sesuai kebutuhan organisasi/pengembang.
 Copyright © 2026 ARK — Aplikasi Register KTP by oski
 ```
 ## ℹ️ Info
-PHP Support : 7.4.33 up to 8.0 ✅
-Masih menggunakan php native ✅
-Layout menggunakan Tailwind ✅
+- PHP Support : 7.4.33 up to 8.0 ✅
+- Masih menggunakan php native ✅
+- Layout menggunakan Tailwind ✅
+
+  
 ---
 
 ## ❤️ ARK — Aplikasi Register KTP
