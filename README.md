@@ -275,8 +275,146 @@ Copyright © 2026 ARK — Aplikasi Register KTP by oski
 - PHP Support : 7.4.33 up to 8.0 ✅
 - Masih menggunakan php native ✅
 - Layout menggunakan Tailwind ✅
-
   
+---
+
+# UPGRADE
+# ARK - Sistem Hak Akses Dinamis
+
+Admin dapat mengatur permission untuk role `FO`, `FO MPP`, dan `Operator` dari menu **Hak Akses Pengguna** tanpa mengubah source code.
+
+Permission dikelompokkan menjadi:
+- Pendaftaran Masyarakat: view, input
+- Pendaftaran Orang Kantor: view, input
+- Pendaftaran OPD: view, input
+- Pendaftaran Operator: view, input
+- Aksi Pendaftaran: edit, hapus, selesai
+- Fitur Umum: cetak, pencarian, restore, laporan, chat, tentang, tutorial
+
+
+`Admin` dan `Admin MPP` tetap menjadi super-role pada engine permission sehingga tidak terblokir oleh toggle permission.
+
+Database: tabel `role_permissions` dibuat otomatis saat aplikasi berjalan. Untuk instalasi manual tersedia `upgrade_permissions.sql`.
+
+Scope wilayah A/B tetap dipertahankan terpisah; permission tidak menghapus pembatasan wilayah.
+
+# REGIS KTP V2
+
+Tambahan V2:
+- Tentang Aplikasi
+- Import CSV
+- Export CSV
+- Template CSV per tabel
+- Nama aplikasi dapat diubah oleh admin/admin_mpp
+- Audit log
+- Dashboard dan CRUD dasar dari V1
+- Tailwind tetap menggunakan CDN
+
+## Instalasi
+1. Extract ZIP ke htdocs, misalnya `htdocs/regis_ktp_v2`.
+2. Import `database.sql`.
+3. Atur koneksi di `config/config.php`.
+4. Daftarkan IP admin pada `ip_alloweds`.
+5. Login default:
+   - admin / password
+6. Buka Management > Pengaturan Aplikasi untuk mengubah nama aplikasi.
+
+## CSV
+Template tersedia untuk:
+- daftar
+- cetak
+- restore
+- pengguna
+- ip_alloweds
+
+CSV harus memakai header yang sama persis. Kolom ID auto increment boleh dikosongkan.
+
+## Catatan
+Untuk import tabel pengguna, nilai password harus sudah berupa hash `password_hash()`, bukan plaintext.
+
+
+### Fix V5 - Selesai Orang Kantor
+Scope query untuk bulk `Selesai` sekarang disamakan dengan scope tabel Pendaftaran Orang Kantor, sehingga data yang terlihat melalui username wilayah tetap dapat dipindahkan ke Cetak.
+
+# ARK Access/Permission Upgrade
+
+Untuk database yang sudah berjalan, jalankan `upgrade_access_final.sql` satu kali.
+Aplikasi juga membuat tabel permission/activity yang hilang secara otomatis saat user login.
+
+Kolom `pengguna.wilayah`:
+- A = Disduk
+- B = MPP
+
+Tabel:
+- role_permissions
+- user_permissions
+- user_activity_log
+
+# ARK Ultra Repair — 23 Agustus 2026
+
+Source basis: ARK latest package plus uploaded Ultra Scanner report.
+
+The uploaded scanner report contains 52 scanned files / 5290 source lines and 900 findings. Many "Syntax Error" findings use the Apache `AH02965` message as evidence rather than a PHP parser message, so they require separate runtime verification.
+
+Repairs applied in this pass:
+- Session cookie hardening: strict mode, cookie-only, HttpOnly, SameSite=Lax, Secure under HTTPS.
+- Central scalar input helpers for POST/GET integer/string/enum validation.
+- Chat API scalar input validation.
+- Pendaftaran/Restore ID and bulk-array validation.
+- Login input validation and 5-attempt / 5-minute session throttle.
+- Report/search/export/master/admin action parameter validation.
+- CSV import restricted to actual uploaded files, 5 MB and 10,000 rows.
+- Master Jenis Pengajuan nested-form markup corrected.
+- Database cleanup statements use query()/prepare()->execute() instead of PDO exec where appropriate.
+- Existing CSRF, role checks, allowlists and prepared statements retained.
+
+Verification:
+- PHP lint is run across all PHP files after patching.
+- No claim is made that all scanner findings are real application defects; heuristic/style findings are treated separately.
+
+## Follow-up from Ultra Scanner rerun
+- Removed the remaining `PDO->exec()` from `audit_log_action.php`.
+- Replaced the dynamic queue-table identifier in `pendaftaran_action.php` with six fixed SQL statements, eliminating identifier injection risk at that location.
+- Removed the hardcoded reset password from `pengguna_action.php`; password resets now generate a random temporary password.
+- Profile password fields now use the central scalar validator.
+- The scanner's duplicate-function findings involving included global helpers / PHP private methods / JavaScript helpers should still be treated as heuristic findings until the scanner understands PHP/JS scopes and `require_once`.
+
+
+## Ultra Galak Follow-up
+- Renamed `SimplePdf::esc()` to `pdfEscape()` because the scanner incorrectly reported the private method as a global duplicate.
+- Strengthened pendaftaran edit inputs with centralized scalar validation.
+- Added strict database-identifier validation for full database backup; identifiers originate from server-side metadata only.
+- Backup SQL is delivered as `application/octet-stream` attachment rather than browser-renderable HTML.
+- Added `quote_identifier()` allowlist helper for CSV/XLSX/SQL exports and imports.
+- The remaining dynamic SQL warnings in backup/export code are for schema-driven identifiers that cannot be parameterized as values; the identifiers are now strictly allowlisted/validated before use.
+
+
+## V4 follow-up
+- Removed dynamic source-table INSERT/SELECT/DELETE statements from `pendaftaran_action.php`; mode now selects fixed SQL statements for `daftar`, `daftar_operator`, `daftar_orang_kantor`, and `daftar_opd`.
+- Removed dynamic restore target INSERT from `restore_action.php`; `asal_tabel` now selects one of four fixed SQL statements.
+- Removed the dynamic `IN (...)` delete from Master Jenis Pengajuan deduplication; duplicate IDs are deleted one-by-one with a fixed prepared statement.
+- Removed plaintext-password comparison/migration from `login.php`; authentication now accepts only password hashes. Legacy accounts require an admin reset.
+
+# Revisi ARK 31 Agustus 2026
+
+1. Hak Akses Pengguna: Admin dan Admin MPP dapat membuka dan menyimpan permission.
+2. Aktivitas Pengguna: hanya menampilkan aktivitas hari ini, mengikuti pola menu Cetak.
+3. Pendaftaran Orang Kantor dan OPD: daftar dibatasi ketat berdasarkan prefix wilayah A/B. Admin/FO = A, Admin MPP/FO MPP = B.
+4. Pendaftaran Operator: tidak ditampilkan untuk Admin MPP dan endpoint langsungnya ditolak.
+5. Notifikasi Pendaftaran Operator: Admin MPP tidak mendapatkan notifikasi.
+
+# ARK Forbidden UI
+
+Semua penolakan akses 403 diarahkan ke `forbidden.php`, bukan halaman putih dengan teks polos.
+Halaman menampilkan:
+- kode 403 dan ikon shield-off,
+- alasan akses ditolak,
+- tombol Kembali,
+- tombol Dashboard/Login,
+- instruksi meminta Admin mengatur permission.
+
+HTTP status tetap 403.
+
 ---
 
 ## ❤️ ARK — Aplikasi Register KTP
